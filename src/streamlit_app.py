@@ -27,7 +27,9 @@ st.title("YouTube Video Link Extractor")
 CHANNEL_LINK = st.text_input("Enter YouTube Channel URL", "https://www.youtube.com/@denis_chuzhoy/videos",
                              key="channel_link",
                             help="Enter the full URL of the YouTube channel you want to analyze.")
-NUM_VIDEOS = st.slider("Number of recent videos to analyze", 1, 50, 10)
+NUM_VIDEOS = st.number_input("Number of recent videos to analyze", 1, 1000, 10,10,
+                             key="num_videos",
+                             help="Specify how many recent videos to analyze from the channel.")
 
 st.sidebar.header("YouTube API Configuration")
 YOUTUBE_API_KEY = st.sidebar.text_input(
