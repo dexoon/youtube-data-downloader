@@ -4,7 +4,7 @@ import streamlit as st
 import logging
 from googleapiclient.discovery import build
 from openrouter import refresh_models
-from youtube import get_channel_id, get_last_videos, get_video_descriptions
+from youtube import get_channel_id, get_last_video_ids, get_uploads_playlist_id, get_video_descriptions
 from data_processing import process_video_descriptions
 from io import BytesIO
 import pandas as pd
@@ -85,7 +85,8 @@ if st.button("Analyze Videos"):
                 logging.info("Starting video analysis.")
                 youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
                 channel_id = get_channel_id(CHANNEL_LINK, YOUTUBE_API_KEY)
-                video_ids = get_last_videos(youtube, channel_id, n=NUM_VIDEOS)
+                playlist_id = get_uploads_playlist_id(youtube, channel_id)
+                video_ids = get_last_video_ids(youtube, playlist_id, max_results=NUM_VIDEOS)
                 descriptions = get_video_descriptions(youtube, video_ids)
                 df = process_video_descriptions(descriptions, openrouter_api_key=OPENROUTER_API_KEY, openrouter_model=OPENROUTER_MODEL)
 

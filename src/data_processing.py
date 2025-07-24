@@ -27,6 +27,9 @@ def get_brand_from_description(description, openrouter_api_key=None, openrouter_
             temperature=0.0
         )
         logging.info(f"OpenRouter response: {response}")
+        if  response.choices[0].message.content is None:
+            logging.error("Empty response from OpenRouter")
+            return {"url": "", "brand": ""}
         content = response.choices[0].message.content.strip()
         info = json.loads(content[content.find('{'):content.rfind('}')+1])
         if isinstance(info, dict) and 'url' in info and 'brand' in info:

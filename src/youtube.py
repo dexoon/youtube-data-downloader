@@ -1,10 +1,11 @@
 import re
 import logging
-from urllib import response
+from typing import List, Dict, Union, Optional
 from googleapiclient.discovery import build
+from googleapiclient.discovery import Resource
 
 
-def extract_identifier(channel_url):
+def extract_identifier(channel_url: str) -> Union[str, Dict[str, str]]:
     logging.info(f"Extracting identifier from URL: {channel_url}")
     m = re.search(r'youtube\.com/(channel|c|user|@[\w\-\.]+|@[\w\-]+)', channel_url)
     if not m:
@@ -21,14 +22,14 @@ def extract_identifier(channel_url):
     logging.error(f"Unknown channel URL format: {channel_url}")
     raise ValueError("Unknown channel url format")
 
-def get_channel_id(channel_url, api_key):
+def get_channel_id(channel_url: str, api_key: str) -> str:
     logging.info(f"Getting channel ID for URL: {channel_url}")
-    youtube = build('youtube', 'v3', developerKey=api_key)
+    youtube: Resource = build('youtube', 'v3', developerKey=api_key)
     info = extract_identifier(channel_url)
     if isinstance(info, str):
         logging.info(f"Channel ID found directly: {info}")
         return info
-    if info['type'] == 'handle':
+    if isinstance(info, dict) and info['type'] == 'handle':
         query = f"@{info['id']}"
     else:
         query = info['id']
@@ -45,8 +46,35 @@ def get_channel_id(channel_url, api_key):
     channel_id = items[0]['id']
     logging.info(f"Found channel ID: {channel_id}")
     return channel_id
-    
-def get_last_videos(youtube, channel_id, n=10):
+def get_uploads_playlist_id(youtube: Resource, channel_id: str) -> str:
+    response = youtube.channels().list(
+        part="contentDetails",
+        id=channel_id
+    ).execute()
+    return response["items"][0]["contentDetails"]["relatedPlaylists"]["uploads"]
+
+def get_last_video_ids(youtube: Resource, playlist_id: str, max_results: int = 20) -> List[str]:
+    video_ids: List[str] = []
+    next_page_token: Optional[str] = None
+    while len(video_ids) < max_results:
+        remaining: int = max_results - len(video_ids)
+        req = youtube.playlistItems().list(
+            part="snippet",
+            playlistId=playlist_id,
+            maxResults=min(50, remaining),
+            pageToken=next_page_token
+        )
+        res = req.execute()
+        for item in res["items"]:
+            video_ids.append(item["snippet"]["resourceId"]["videoId"])
+            if len(video_ids) >= max_results:
+                break
+        next_page_token = res.get("nextPageToken")
+        if not next_page_token:
+            break
+    return video_ids
+
+def get_last_videos(youtube: Resource, channel_id: str, n: int = 10) -> List[str]:
     logging.info(f"Getting last {n} videos for channel ID: {channel_id}")
     req = youtube.search().list(
         part='id',
@@ -56,13 +84,13 @@ def get_last_videos(youtube, channel_id, n=10):
         type='video'
     )
     res = req.execute()
-    video_ids = [item['id']['videoId'] for item in res['items']]
+    video_ids: List[str] = [item['id']['videoId'] for item in res['items']]
     logging.info(f"Found {len(video_ids)} video IDs.")
     return video_ids
 
-def get_video_descriptions(youtube, video_ids):
+def get_video_descriptions(youtube: Resource, video_ids: List[str]) -> List[Dict[str, str]]:
     logging.info(f"Getting descriptions for {len(video_ids)} videos.")
-    descriptions = []
+    descriptions: List[Dict[str, str]] = []
     req = youtube.videos().list(
         part='snippet',
         id=','.join(video_ids)
@@ -78,10 +106,10 @@ def get_video_descriptions(youtube, video_ids):
     logging.info(f"Retrieved {len(descriptions)} descriptions.")
     return descriptions
 
-def extract_links(description):
+def extract_links(description: str) -> List[str]:
     return re.findall(r'https?://\S+', description)
 
-def get_brand_from_url(url):
+def get_brand_from_url(url: str) -> Optional[str]:
     domain = re.findall(r'https?://([^/\s]+)', url)
     if domain:
         return domain[0]
