@@ -91,18 +91,23 @@ def get_last_videos(youtube: Resource, channel_id: str, n: int = 10) -> List[str
 def get_video_descriptions(youtube: Resource, video_ids: List[str]) -> List[Dict[str, str]]:
     logging.info(f"Getting descriptions for {len(video_ids)} videos.")
     descriptions: List[Dict[str, str]] = []
-    req = youtube.videos().list(
-        part='snippet',
-        id=','.join(video_ids)
-    )
-    res = req.execute()
-    for item in res['items']:
-        descriptions.append({
-            'video_id': item['id'],
-            'title': item['snippet']['title'],
-            'url': f"https://www.youtube.com/watch?v={item['id']}",
-            'description': item['snippet']['description']
-        })
+    
+    # Process video IDs in chunks of 50
+    for i in range(0, len(video_ids), 50):
+        chunk = video_ids[i:i + 50]
+        req = youtube.videos().list(
+            part='snippet',
+            id=','.join(chunk)
+        )
+        res = req.execute()
+        for item in res['items']:
+            descriptions.append({
+                'video_id': item['id'],
+                'title': item['snippet']['title'],
+                'url': f"https://www.youtube.com/watch?v={item['id']}",
+                'description': item['snippet']['description']
+            })
+    
     logging.info(f"Retrieved {len(descriptions)} descriptions.")
     return descriptions
 
