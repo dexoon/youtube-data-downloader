@@ -32,7 +32,7 @@ To set up the project, follow these steps:
 To run the Streamlit server, use the following command:
 
 ```bash
-streamlit run src/streamlit_server.py
+streamlit run src/streamlit_app.py
 ```
 
 Further usage details for specific modules (data processing, OpenRouter, YouTube) would depend on their internal implementation and how they are exposed.

@@ -8,6 +8,11 @@ from youtube import get_channel_id, get_last_videos, get_video_descriptions
 from data_processing import process_video_descriptions
 from io import BytesIO
 import pandas as pd
+import dotenv
+import os
+
+# Load environment variables from .env file
+dotenv.load_dotenv()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO,
@@ -25,15 +30,19 @@ CHANNEL_LINK = st.text_input("Enter YouTube Channel URL", "https://www.youtube.c
 NUM_VIDEOS = st.slider("Number of recent videos to analyze", 1, 50, 10)
 
 st.sidebar.header("YouTube API Configuration")
-YOUTUBE_API_KEY = st.sidebar.text_input("YouTube API Key", type="password",key="youtube_api_key",
-                                        help="Get your key from https://console.developers.google.com/apis/credentials")
+YOUTUBE_API_KEY = st.sidebar.text_input(
+    "YouTube API Key", 
+    type="password",
+    key="youtube_api_key",
+    help="Get your key from https://console.developers.google.com/apis/credentials"
+) or st.secrets.get("YOUTUBE_API_KEY", "")
 st.sidebar.header("OpenRouter Configuration")
 OPENROUTER_API_KEY = st.sidebar.text_input(
-    "OpenRouter API Key", 
+    "OpenRouter API Key",
     type="password", 
-    key="api_key_temp",
+    key="openrouter_api_key",
     help="Get your key from https://openrouter.ai/keys"
-)
+) or st.secrets.get("OPENROUTER_API_KEY", "")
 # Model selection section
 st.sidebar.subheader("Model Selection")
 

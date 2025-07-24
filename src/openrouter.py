@@ -26,7 +26,7 @@ def fetch_models_with_openai_sdk(api_key=None):
 def refresh_models():
     """Refresh models using OpenAI SDK"""
     with st.spinner("Refreshing models via OpenAI SDK..."):
-        api_key = st.session_state.get('api_key_temp', 'sk-or-test-key')
+        api_key = st.session_state.get('openrouter_api_key', 'sk-or-test-key')
         models = fetch_models_with_openai_sdk(api_key)
         
         if models:
