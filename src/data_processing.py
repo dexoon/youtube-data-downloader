@@ -48,13 +48,17 @@ def process_video_descriptions(
 ):
     def process_one(desc):
         text = desc['description']
-        brand_info = get_brand_from_description(
+        if not text:
+            brand_info = {"url": "", "brand": ""}
+        else:
+            brand_info = get_brand_from_description(
             text, openrouter_api_key=openrouter_api_key, openrouter_model=openrouter_model
         )
         return {
+            'published_at': desc['published_at'],
             'video_url': desc['url'],
             'title': desc['title'],
-            'descriptions': desc['description'],
+            'description': desc['description'],
             'brand': brand_info.get('brand', ''),
             'link': brand_info.get('url', '')
         }
@@ -63,5 +67,5 @@ def process_video_descriptions(
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         results = list(executor.map(process_one, descriptions))
     # Filter out None results
-    data = [r for r in results if r]
+    data = sorted([r for r in results if r], key=lambda x: str(x['description']!='')+x['published_at'], reverse=True)    
     return pd.DataFrame(data) if data else None

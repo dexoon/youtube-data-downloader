@@ -104,8 +104,9 @@ def get_video_descriptions(youtube: Resource, video_ids: List[str]) -> List[Dict
         )
         res = req.execute()
         for item in res['items']:
-            if  item['snippet']['description']:
-                descriptions.append({
+            
+            descriptions.append({
+                'published_at': item['snippet']['publishedAt'],
                 'video_id': item['id'],
                 'title': item['snippet']['title'],
                 'url': f"https://www.youtube.com/watch?v={item['id']}",
