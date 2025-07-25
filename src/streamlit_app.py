@@ -65,7 +65,7 @@ if 'openrouter_models' not in st.session_state or not st.session_state.openroute
 OPENROUTER_MODEL = st.sidebar.selectbox(
     "Select Model",
     options=st.session_state.openrouter_models,
-    index=0 if st.session_state.openrouter_models else None,
+    index=st.session_state.default_model_index if st.session_state.openrouter_models else None,
     key="model_selector"
 )
 

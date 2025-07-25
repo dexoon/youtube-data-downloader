@@ -7,6 +7,9 @@ from concurrent.futures import ThreadPoolExecutor
 
 
 def get_brand_from_description(description, openrouter_api_key=None, openrouter_model=None):
+    if not description:
+        logging.warning("Empty description provided for brand extraction.")
+        return {"url": "", "brand": ""}
     if not openrouter_api_key or not openrouter_model:
         return {"url": "", "brand": ""}
     """Extract brand from video description using OpenRouter API."""
@@ -44,20 +47,17 @@ def process_video_descriptions(
     descriptions, openrouter_api_key=None, openrouter_model=None, max_workers=8
 ):
     def process_one(desc):
-        links = extract_links(desc['description'])
         text = desc['description']
         brand_info = get_brand_from_description(
             text, openrouter_api_key=openrouter_api_key, openrouter_model=openrouter_model
         )
-        if links:
-            return {
-                'video_url': desc['url'],
-                'title': desc['title'],
-                'descriptions': desc['description'],
-                'brand': brand_info.get('brand', ''),
-                'link': brand_info.get('url', '')
-            }
-        return None
+        return {
+            'video_url': desc['url'],
+            'title': desc['title'],
+            'descriptions': desc['description'],
+            'brand': brand_info.get('brand', ''),
+            'link': brand_info.get('url', '')
+        }
 
     # Use ThreadPoolExecutor for parallel I/O
     with ThreadPoolExecutor(max_workers=max_workers) as executor:

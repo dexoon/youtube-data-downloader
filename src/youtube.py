@@ -51,6 +51,7 @@ def get_uploads_playlist_id(youtube: Resource, channel_id: str) -> str:
         part="contentDetails",
         id=channel_id
     ).execute()
+    logging.info(f"Getting uploads playlist ID for channel ID: {channel_id}")
     return response["items"][0]["contentDetails"]["relatedPlaylists"]["uploads"]
 
 def get_last_video_ids(youtube: Resource, playlist_id: str, max_results: int = 20) -> List[str]:
@@ -65,6 +66,7 @@ def get_last_video_ids(youtube: Resource, playlist_id: str, max_results: int = 2
             pageToken=next_page_token
         )
         res = req.execute()
+        logging.info(f"Fetching video IDs from playlist: {playlist_id}, found: {len(res.get('items', []))}, remaining: {remaining}")
         for item in res["items"]:
             video_ids.append(item["snippet"]["resourceId"]["videoId"])
             if len(video_ids) >= max_results:
@@ -72,6 +74,7 @@ def get_last_video_ids(youtube: Resource, playlist_id: str, max_results: int = 2
         next_page_token = res.get("nextPageToken")
         if not next_page_token:
             break
+    logging.info(f"Total video IDs fetched: {len(video_ids)}")
     return video_ids
 
 def get_last_videos(youtube: Resource, channel_id: str, n: int = 10) -> List[str]:
@@ -101,7 +104,8 @@ def get_video_descriptions(youtube: Resource, video_ids: List[str]) -> List[Dict
         )
         res = req.execute()
         for item in res['items']:
-            descriptions.append({
+            if  item['snippet']['description']:
+                descriptions.append({
                 'video_id': item['id'],
                 'title': item['snippet']['title'],
                 'url': f"https://www.youtube.com/watch?v={item['id']}",
